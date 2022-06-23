@@ -9,6 +9,7 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 
 import java.util.List;
 
@@ -24,15 +25,15 @@ public class UiTest {
 
     @BeforeEach
     public void setUp() {
-//        FirefoxBinary firefoxBinary = new FirefoxBinary();
-//        FirefoxOptions options = new FirefoxOptions();
-//        options.setBinary(firefoxBinary);
-//        options.setHeadless(true);
-         driver = new ChromeDriver();
+        ChromeOptions options = new ChromeOptions();
+        options.addArguments("--disable-dev-shm-usage");
+        options.addArguments("--no-sandbox");
+        options.addArguments("--headless");
+        driver = new ChromeDriver();
     }
 
     @Test
-    public  void should(){
+    public  void shouldTestingForm(){
         driver.get("http://localhost:9999/");
         List<WebElement> elements = driver.findElements(By.className("input__control"));
         driver.findElement(By.cssSelector("[type='text']")).sendKeys("Сюзанна");
