@@ -41,7 +41,7 @@ public class UiTest {
         driver.findElement(By.className("checkbox__box")).click();
         driver.findElement(By.tagName("button")).click();
         String text = driver.findElement(By.className("paragraph_theme_alfa-on-white")).getText().trim();
-        String expected = "Ваша заявка успешно отправлена! Наш менеджер свяжется с вами в ближайшее время.";
+        String expected = "";
         assertEquals(expected, text);
     }
 
