@@ -1,53 +1,83 @@
 package ru.netology.test;
 
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
+import com.codeborne.selenide.Configuration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
 
-import java.util.List;
+import static com.codeborne.selenide.Condition.exactText;
+import static com.codeborne.selenide.Condition.exist;
+import static com.codeborne.selenide.Selenide.$;
+import static com.codeborne.selenide.Selenide.open;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-public class UiTest {
-    private WebDriver driver;
-
-    @BeforeAll
-    public static void setUpDriver() {
-        System.setProperty("webdriver.chrome.driver", "./drivers/linux/chromedriver");
-    }
-
+public class CardOrderTestSelenide {
     @BeforeEach
-    public void setUp() {
-        ChromeOptions options = new ChromeOptions();
-        options.addArguments("--disable-dev-shm-usage");
-        options.addArguments("--no-sandbox");
-        options.addArguments("--headless");
-        driver = new ChromeDriver();
+    void setUp() {
+        Configuration.browser = "chrome";
     }
 
+    // Верное заполнение полей (с SCC селекторами)
     @Test
-    public  void shouldTestingForm(){
-        driver.get("http://localhost:9999/");
-        List<WebElement> elements = driver.findElements(By.className("input__control"));
-        driver.findElement(By.cssSelector("[type='text']")).sendKeys("Сюзанна");
-        driver.findElement(By.cssSelector("[type='tel']")).sendKeys("+79788586822");
-        driver.findElement(By.className("checkbox__box")).click();
-        driver.findElement(By.tagName("button")).click();
-        String text = driver.findElement(By.className("paragraph_theme_alfa-on-white")).getText().trim();
-        String expected = "";
-        assertEquals(expected, text);
+    public void shouldOrderCardWithCssSelectors() {
+        open("http://localhost:9999");
+        $("[type='text']").setValue("Сергеев Иван");
+        $("[type='tel']").setValue("+79890000002");
+        $(".checkbox__box").click();
+        $("button").click();
+        $(".paragraph_theme_alfa-on-white").shouldHave(exactText("Ваша заявка успешно отправлена! Наш менеджер свяжется с вами в ближайшее время."));
     }
 
-    @AfterEach
-    public void tearDown() {
-        driver.quit();
-        driver = null;
+    // Неверно заполненное поле для ввода ФИО
+    @Test
+    public void shouldShowErrorIfIncorrectFillingOfTheFullName() {
+        open("http://localhost:9999");
+        $("[type='text']").setValue("Ivanov Ivan");
+        $("[type='tel']").setValue("+79896789034");
+        $(".checkbox__box").click();
+        $("button").click();
+        $("[data-test-id ='name'] .input__sub").shouldHave(exactText("Имя и Фамилия указаные неверно. Допустимы только русские буквы, пробелы и дефисы."));
+    }
+
+    // Пустое после для вводо ФИО
+    @Test
+    public void shouldShowErrorIfEmptyFieldWithFullName() {
+        open("http://localhost:9999");
+        $("[type='text']").setValue("");
+        $("[type='tel']").setValue("+79896789034");
+        $(".checkbox__box").click();
+        $("button").click();
+        $("[data-test-id ='name'] .input__sub").shouldHave(exactText("Поле обязательно для заполнения"));
+    }
+
+    // Неверно заполненное после для ввода номера телефоно
+    @Test
+    public void shouldShowErrorIfIncorrectFillingOfThePhoneNumber() {
+        open("http://localhost:9999");
+        $("[type='text']").setValue("Иванов Иван");
+        $("[type='tel']").setValue("9896789034");
+        $(".checkbox__box").click();
+        $("button").click();
+        $("[data-test-id=phone] .input__sub").shouldHave(exactText("Телефон указан неверно. Должно быть 11 цифр, например, +79012345678."));
+    }
+
+    // Пустое поле для ввода номера телефона
+    @Test
+    public void shouldShowErrorIfEmptyFieldWithPhoneNumber() {
+        open("http://localhost:9999");
+        $("[type='text']").setValue("Иванов Иван");
+        $("[type='tel']").setValue("");
+        $(".checkbox__box").click();
+        $("button").click();
+        $("[data-test-id=phone] .input__sub").shouldHave(exactText("Поле обязательно для заполнения"));
+    }
+
+    // Нет флажка согласия в чек-боксе
+    @Test
+    public void shouldShowErrorWithoutAgreementInCheckBox() {
+        open("http://localhost:9999");
+        $("[type='text']").setValue("Иванов Иван");
+        $("[type='tel']").setValue("+79012345678");
+        $("button").click();
+        $(".input_invalid").should(exist);
     }
 }
